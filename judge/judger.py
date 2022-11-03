@@ -100,7 +100,6 @@ def Consumer(channel, method, properites, body):
 
     global m, pid
     m = eval(body)
-    MissionInfo.message = m
     missionType = m['missionType']
     platformContext = m['platformContext']
     # serverContext = m['serverContext']
