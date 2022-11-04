@@ -10,3 +10,7 @@ def fun1():
 
 def fun2():
     p2_API = mp.Process()
+
+
+def fun3():
+    pass
