@@ -269,11 +269,14 @@ def run_judger():
 
         failed_last_time = False
         try:
+            print(1)
             rabbitMQConnection = MQConnector()
-
+            print(2)
             if not failed_last_time:
+                print(3)
                 rabbitMQChannel = GetRabbitMQChannel(
                     rabbitMQConnection, MQQueueName, Consumer)
+                print(4)
                 print("GetChannel Successful")
 
                 rabbitMQChannel.start_consuming()
