@@ -19,6 +19,5 @@ class HeartBeat:
         print(res.text)
 
 
-
 # 向平台发送实例化
 platform_heartbeat = HeartBeat(urls.url_to_platform_heartbeat, urls.data_to_platform_heartbeat)
