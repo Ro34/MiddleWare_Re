@@ -35,18 +35,32 @@ class DatabaseBase:
         c.execute(
             # "UPDATE" + self.table_name + " SET " += ? WHERE ? = ? VALUES()"
             #https://lilongsy.blog.csdn.net/article/details/122883570?spm=1001.2101.3001.6650.3&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-122883570-blog-108942995.pc_relevant_3mothn_strategy_recovery&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-122883570-blog-108942995.pc_relevant_3mothn_strategy_recovery&utm_relevant_index=4
-            "UPDATE " + self.table_name + " SET " + str(update_key) + " = " + update_value + " WHERE " + str(update_condition_key) + " = " + str(update_condition_value))
+            "UPDATE " + self.table_name + " SET " + update_key + " =? "  + " WHERE " + update_condition_key + " =?",(update_value,update_condition_value))
         c.close()
+        conn.commit()
 
-    def query_database(self, column_name, query_condition_key, query_condition_value):
-        # super().__init__('ServicesResourcesTable')
+    def query_database(self, query_condition_key, query_condition_value):
         # c = super().init_database()
         conn = sqlite3.connect('mission.db')
+
+        def dict_factory(cursor, row):
+        # 将游标获取的数据处理成字典返回
+            d = {}
+            for idx, col in enumerate(cursor.description):
+                d[col[0]] = row[idx]
+            return d  
+
         c = conn.cursor()
         c.execute(
-            "SELECT ? FROM ? WHERE ?=?", (column_name, self.table_name, query_condition_key, query_condition_value)
+            "SELECT * FROM "+self.table_name+" WHERE "+query_condition_key +" = ?", (query_condition_value)
         )
+        # print(c.fetchall())
+        result_dict = dict_factory(c,c.fetchone())
         c.close()
+        print(result_dict)
+        self.dict = result_dict
+        # return result_dict
+
 
 
 class ServicesResources(DatabaseBase):
@@ -67,7 +81,7 @@ class ServicesResources(DatabaseBase):
         conn = self.conn
         c = conn.cursor()
         c.execute(
-            "insert into " + self.table_name + " (ID,SERVICE_NAME,GPU_ESTIMATE,CPU_ESTIMATE) values (NULL,?,?,?)",
+            "insert into " + self.table_name + " (ID,SERVICE_NAME,GPU_ESTIMATE,CPU_ESTIMATE) values (NULL,'?','?','?')",
             (service_name, gpu_estimate, cpu_estimate)
         )
 
@@ -85,9 +99,9 @@ class ServicesResources(DatabaseBase):
         # )
         # c.close()
 
-    def query_database(self, column_name, query_condition_key, query_condition_value):
+    def query_database(self, query_condition_key, query_condition_value):
         super().__init__('ServicesResourcesTable')
-        super().query_database(column_name, query_condition_key, query_condition_value)
+        super().query_database(query_condition_key, query_condition_value)
 
 
 class ServerInfo(DatabaseBase):
@@ -147,7 +161,8 @@ class MissionInfo(DatabaseBase):
         super().query_database(column_name, query_condition_key, query_condition_value)
 
 
-a = ServicesResources()
+b = ServicesResources()
 # a.insert_database('training', '3G', '2G')
-a.update_database('GPU_ESTIMATE', '10G', 'ID', 1)
-print(a.conn)
+b.query_database('ID', '2')
+print(b.dict)
+# print(c)
