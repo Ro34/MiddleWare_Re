@@ -1,5 +1,6 @@
 # 心跳包
 import json
+import time
 
 import requests
 
@@ -14,9 +15,11 @@ class HeartBeat:
         self.data = data
 
     def heartbeat(self):
-        res = requests.post(url=self.url, headers={"Content-Type": "application/json"}, data=json.dumps(self.data))
-        print("发送心跳包" + urls.url_to_platform_heartbeat)
-        print(res.text)
+        while True:
+            res = requests.post(url=self.url, headers={"Content-Type": "application/json"}, data=json.dumps(self.data))
+            print("发送心跳包" + urls.url_to_platform_heartbeat)
+            print(res.text)
+            time.sleep(30)
 
 
 # 向平台发送实例化

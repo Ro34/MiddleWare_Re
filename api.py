@@ -1,32 +1,6 @@
-import runpy
-import sqlite3
-
-from typing import Union
-
-import requests
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-
-# from Judge.Operations.toPlatform.ReportProgress import report_progress
-# from Judge.Operations.toServer import stopMission
-# from shell import runshell
-
-# global mission_progress
-# global epoch_
-# mission_progress = 0.0001
-# epoch_ = 99998
-# global total_epoch_
-# total_epoch_ = 99997
-# global server_pid
-# server_pid = 99996
-# global killing_pid
-# global interaction_service_status
-# global killing_conname
-
-
-# global serverContext_
-# serverContext_ = '149'
 
 
 class train_mission_paras(BaseModel):
@@ -50,13 +24,16 @@ class progress_params(BaseModel):
     serverContext: str
 
 
-class missioninfo_para(BaseModel):
+class mission_info_para(BaseModel):
     serverContext: str
+    mission_status: str
+    server_status: str
+    status_code: int
     training_epoch: int = None
     training_total_epoch: int = None
-    training_pid: int= None
+    training_pid: int = None
     training_progress: int = None
-    marking_containername: str = None
+    marking_container_name: str = None
     dataset_total: int = None
     dataset_done: int = None
 
@@ -64,7 +41,16 @@ class missioninfo_para(BaseModel):
 app1 = FastAPI()
 
 
-# 接受模型训练任务进度
+@app1.post("/mission_info")
+async def get_mission_info(item: mission_info_para):
+    print("------------------------------------------")
+
+    print(item)
+
+    return {"new ok ==== " + '\n' + str(item)}
+
+
+# 其他
 @app1.post("/progress/send_progress")
 async def send_progress(item: progress_params):
     global mission_progress
@@ -162,7 +148,7 @@ async def marking_service_ok(item: interaction_para):
 
 
 @app1.post("/mission_info")
-async def get_mission_info(item: missioninfo_para):
+async def get_mission_info(item: mission_info_para):
     print("------------------------------------------")
 
     print(item)

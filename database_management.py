@@ -8,13 +8,6 @@ class DatabaseBase:
 
     def init_database(self):
         conn = sqlite3.connect('mission.db')
-        # c = conn.cursor()
-        # c.execute(
-        #     "create table if not exists ?(ID INTEGER PRIMARY KEY,TASKID INT,MISSIONTYPE STR,PLATFORMCONTEXT STR,SERVERCONTEXT STR,PID STR,PROGRESS INT)",
-        #     (self.sql_name,))
-        # c.execute(
-        #     "create table if not exists marking_list(ID INTEGER PRIMARY KEY,TASKID INT,MISSIONTYPE STR,PLATFORMCONTEXT STR,SERVERCONTEXT STR,CONTAINERNAME STR)")
-        # c.close()
         return conn
 
     # def insert_database(self, para):
@@ -34,8 +27,9 @@ class DatabaseBase:
         c = conn.cursor()
         c.execute(
             # "UPDATE" + self.table_name + " SET " += ? WHERE ? = ? VALUES()"
-            #https://lilongsy.blog.csdn.net/article/details/122883570?spm=1001.2101.3001.6650.3&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-122883570-blog-108942995.pc_relevant_3mothn_strategy_recovery&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-122883570-blog-108942995.pc_relevant_3mothn_strategy_recovery&utm_relevant_index=4
-            "UPDATE " + self.table_name + " SET " + update_key + " =? "  + " WHERE " + update_condition_key + " =?",(update_value,update_condition_value))
+            # https://lilongsy.blog.csdn.net/article/details/122883570?spm=1001.2101.3001.6650.3&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-122883570-blog-108942995.pc_relevant_3mothn_strategy_recovery&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-3-122883570-blog-108942995.pc_relevant_3mothn_strategy_recovery&utm_relevant_index=4
+            "UPDATE " + self.table_name + " SET " + update_key + " = ? WHERE " + update_condition_key + " = ?", (
+                update_value, update_condition_value))
         c.close()
         conn.commit()
 
@@ -44,23 +38,22 @@ class DatabaseBase:
         conn = sqlite3.connect('mission.db')
 
         def dict_factory(cursor, row):
-        # 将游标获取的数据处理成字典返回
+            # 将游标获取的数据处理成字典返回
             d = {}
             for idx, col in enumerate(cursor.description):
                 d[col[0]] = row[idx]
-            return d  
+            return d
 
         c = conn.cursor()
         c.execute(
-            "SELECT * FROM "+self.table_name+" WHERE "+query_condition_key +" = ?", (query_condition_value)
+            "SELECT * FROM " + self.table_name + " WHERE " + query_condition_key + " = ?", query_condition_value
         )
         # print(c.fetchall())
-        result_dict = dict_factory(c,c.fetchone())
+        result_dict = dict_factory(c, c.fetchone())
         c.close()
-        print(result_dict)
+        # print(result_dict)
         self.dict = result_dict
         # return result_dict
-
 
 
 class ServicesResources(DatabaseBase):
@@ -81,7 +74,7 @@ class ServicesResources(DatabaseBase):
         conn = self.conn
         c = conn.cursor()
         c.execute(
-            "insert into " + self.table_name + " (ID,SERVICE_NAME,GPU_ESTIMATE,CPU_ESTIMATE) values (NULL,'?','?','?')",
+            "insert into " + self.table_name + " (ID,SERVICE_NAME,GPU_ESTIMATE,CPU_ESTIMATE) values (NULL,?,?,?)",
             (service_name, gpu_estimate, cpu_estimate)
         )
 
@@ -106,63 +99,92 @@ class ServicesResources(DatabaseBase):
 
 class ServerInfo(DatabaseBase):
     def __init__(self):
-        super().__init__('ServerInfo')
+        super().__init__('ServerInfoTable')
+        # c = super().init_database()
         conn = self.conn
         c = conn.cursor()
+        print(c)
         c.execute(
-            "create table if not exists ? (ID INTEGER PRIMARY KEY, IP VARCHAR(50),STATUS VARCHAR(50),TYPE VARCHAR(50),MISSION_NUM VARCHAR(50),RESOURCES VARCHAR(50),NETWORK VARCHAR(50))",
-            (self.table_name,))
+            "create table if not exists " + self.table_name + " (ID INTEGER PRIMARY KEY, IP VARCHAR(50),STATUS VARCHAR(50),TYPE VARCHAR(50),MISSION_NUM VARCHAR(50),RESOURCES VARCHAR(50),NETWORK VARCHAR(50))")
+        print(222)
+        conn.commit()
         c.close()
 
     def insert_database(self, ip, status, type0, mission_num, resources, network):
-        super().__init__('ServicesResourcesTable')
-        c = super().init_database()
+        super().__init__('ServerInfoTable')
+        conn = self.conn
+        c = conn.cursor()
         c.execute(
-            "insert into ?(ID,IP,STATUS,TYPE,MISSION_NUM,RESOURCES,NETWORK) values (NULL,?,?,?,?,?,?)",
-            (self.table_name, ip, status, type0, mission_num, resources, network)
+            "insert into " + self.table_name + " (ID,IP,STATUS,TYPE,MISSION_NUM,RESOURCES,NETWORK) values (NULL,?,?,?,?,?,?)",
+            (ip, status, type0, mission_num, resources, network)
         )
+
         c.close()
+        conn.commit()
 
     def update_database(self, update_key, update_value, update_condition_key, update_condition_value):
-        super().__init__('ServicesResourcesTable')
+        super().__init__('ServerInfoTable')
+        # c = super().init_database()
+
         super().update_database(update_key, update_value, update_condition_key, update_condition_value)
 
     def query_database(self, column_name, query_condition_key, query_condition_value):
-        super().__init__('ServicesResourcesTable')
-        super().query_database(column_name, query_condition_key, query_condition_value)
+        super().__init__('ServerInfoTable')
+        super().query_database(query_condition_key, query_condition_value)
 
 
 class MissionInfo(DatabaseBase):
-    def init_database(self):
-        super().__init__('ServicesResourcesTable')
-        c = super().init_database()
+
+
+    def __init__(self):
+        super().__init__('MissionInfoTable')
+        # c = super().init_database()
+        conn = self.conn
+        c = conn.cursor()
+        print(c)
         c.execute(
-            "create table if not exists ?(ID INTEGER PRIMARY KEY, TASKID INT,MISSIONTYPE VARCHAR(50),MISSIONSTATUS VARCHAR(50),IP VARCHAR(50),PORT VARCHAR(50),SERVERSTATUS VARCHAR(50),PLATFORMCONTEXT VARCHAR(255),SERVERCONTEXT VARCHAR(50),PID INT,PROGRESS FLOAT,CONTAINERNAME VARCHAR(50))",
-            self.table_name)
+            "create table if not exists " + self.table_name + " (ID INTEGER PRIMARY KEY, TASKID INT,MISSIONTYPE VARCHAR(50),MISSIONSTATUS VARCHAR(50),IP VARCHAR(50),PORT VARCHAR(50),SERVERSTATUS VARCHAR(50),PLATFORMCONTEXT VARCHAR(255),SERVERCONTEXT VARCHAR(50),PID INT,PROGRESS FLOAT,CONTAINERNAME VARCHAR(50))")
+        print(333)
+        conn.commit()
         c.close()
 
-    def insert_database(self, id, taskid, mission_type, missions_status, ip, port, server_status, platform_context,
+    def insert_database(self, taskid, mission_type, missions_status, ip, port, server_status, platform_context,
                         server_context, pid, progress, containername):
-        super().__init__('ServicesResourcesTable')
-        c = super().init_database()
+        super().__init__('MissionInfoTable')
+        conn = self.conn
+        c = conn.cursor()
         c.execute(
-            "insert into ?(ID,TASKID,MISSIONTYPE,MISSIONSTATUS,IP,PORT,SERVERSTATUS,PLATFORMCONTEXT,SERVERCONTEXT,PID,PROGRESS,CONTAINERNAME) values (NULL,?,?,?,?,?,?,?,?,?,?,?)",
-            (self.table_name, id, taskid, mission_type, missions_status, ip, port, server_status, platform_context,
+            "insert into " + self.table_name + " (ID,TASKID,MISSIONTYPE,MISSIONSTATUS,IP,PORT,SERVERSTATUS,PLATFORMCONTEXT,SERVERCONTEXT,PID,PROGRESS,CONTAINERNAME) values (NULL,?,?,?,?,?,?,?,?,?,?,?)",
+            (taskid, mission_type, missions_status, ip, port, server_status, platform_context,
              server_context, pid, progress, containername)
         )
+
         c.close()
+        conn.commit()
 
     def update_database(self, update_key, update_value, update_condition_key, update_condition_value):
-        super().__init__('ServicesResourcesTable')
+        super().__init__('MissionInfoTable')
+        # c = super().init_database()
+
         super().update_database(update_key, update_value, update_condition_key, update_condition_value)
 
-    def query_database(self, column_name, query_condition_key, query_condition_value):
-        super().__init__('ServicesResourcesTable')
-        super().query_database(column_name, query_condition_key, query_condition_value)
+    def query_database(self,  query_condition_key, query_condition_value):
+        super().__init__('MissionInfoTable')
+        super().query_database(query_condition_key, query_condition_value)
 
 
-b = ServicesResources()
-#aaa
-b.query_database('ID', '2')
-print(b.dict)
-# print(c)
+# 测试表2
+# a = ServerInfo()
+# print(a)
+# # a.insert_database("192.168", 'running', 'training', '4', 'GPU:10G  CPU:4G', "10M/s")
+# a.update_database('IP', "'192.new'", 'MISSION_NUM', '4')
+# a.query_database('NETWORK', 'MISSION_NUM', '4')
+# print(a.dict)
+#
+# #
+# # b = ServicesResources()
+# # b.update_database('GPU_ESTIMATE', "'NEW'", "ID", '1')
+# # # aaa
+# # b.query_database('ID', '2')
+# # print(b.dict)
+# # # print(c)
