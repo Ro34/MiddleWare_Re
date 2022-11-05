@@ -1,0 +1,1 @@
+SELECT GPU_ESTIMATE FROM ServicesResourcesTable WHERE ID = 1
