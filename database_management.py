@@ -162,7 +162,7 @@ class MissionInfo(DatabaseBase):
 
 
 b = ServicesResources()
-
+#aaa
 b.query_database('ID', '2')
 print(b.dict)
 
