@@ -165,4 +165,4 @@ b = ServicesResources()
 # a.insert_database('training', '3G', '2G')
 b.query_database('ID', '2')
 print(b.dict)
-# print(c)
+
