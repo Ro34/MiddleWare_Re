@@ -8,7 +8,6 @@ import json
 import time
 import logging
 import logging.config
-import middle_args
 
 from judge.aliyun_env import *
 
@@ -97,163 +96,160 @@ def TaskEnded(method):
 
 
 def Consumer(channel, method, properites, body):
-    channel.basic_ack(delivery_tag=method.delivery_tag)
+    # channel.basic_ack(delivery_tag=method.delivery_tag)
+
+    global m, pid
     m = eval(body)
-    middle_args.MISSION_TEXT = m
-    channel.basic_ack(delivery_tag=method.delivery_tag)
+    missionType = m['missionType']
+    platformContext = m['platformContext']
+    # serverContext = m['serverContext']
+    # indexstr1 = '"TaskId":'
+    # indexstr2 = ',"AiTask'
+    # taskid = platformContext[platformContext.index(indexstr1):platformContext.index(indexstr2)]
 
-    # global m, pid
-    # m = eval(body)
-    # missionType = m['missionType']
-    # platformContext = m['platformContext']
-    # # serverContext = m['serverContext']
-    # # indexstr1 = '"TaskId":'
-    # # indexstr2 = ',"AiTask'
-    # # taskid = platformContext[platformContext.index(indexstr1):platformContext.index(indexstr2)]
+    taskid = platformContext.split(",")[0].split(":")[-1]
+    aiTaskType = platformContext.split(",")[1].split(":")[-1][1:-2]
+    # print(serverContext)
+    print(platformContext)
+    print('任务参数')
+    print(m)
+    print('任务类型')
+    print(m['missionType'])
 
-    # taskid = platformContext.split(",")[0].split(":")[-1]
-    # aiTaskType = platformContext.split(",")[1].split(":")[-1][1:-2]
-    # # print(serverContext)
-    # print(platformContext)
-    # print('任务参数')
-    # print(m)
-    # print('任务类型')
-    # print(m['missionType'])
+    # 写入数据库
 
-    # # 写入数据库
+    if missionType == 'AiModelTraining':
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        # print("test")
 
-    # if missionType == 'AiModelTraining':
-    #     channel.basic_ack(delivery_tag=method.delivery_tag)
-    #     # print("test")
+        Mission_Judgment.mission_judgment(platformContext=platformContext, host_ip='172.18.60.77', port=60090,
+                                          serverContext=taskid)
+        conn = sqlite3.connect('mission.db')
+        c = conn.cursor()
+        # init
 
-    #     Mission_Judgment.mission_judgment(platformContext=platformContext, host_ip='172.18.60.77', port=60090,
-    #                                       serverContext=taskid)
-    #     conn = sqlite3.connect('mission.db')
-    #     c = conn.cursor()
-    #     # init
+        # add
+        c.execute(
+            "insert into training_list(ID,TASKID,MISSIONTYPE,PLATFORMCONTEXT,SERVERCONTEXT,PID,PROGRESS) values (NULL,?,?,?,?,NULL,0)",
+            (taskid, missionType, platformContext, taskid))
+        c.close()
+        conn.commit()
+        print("sql done")
+        # url = "http://192.168.9.99:6080/mmdetection/mmdet_model_train?"
 
-    #     # add
-    #     c.execute(
-    #         "insert into training_list(ID,TASKID,MISSIONTYPE,PLATFORMCONTEXT,SERVERCONTEXT,PID,PROGRESS) values (NULL,?,?,?,?,NULL,0)",
-    #         (taskid, missionType, platformContext, taskid))
-    #     c.close()
-    #     conn.commit()
-    #     print("sql done")
-    #     # url = "http://192.168.9.99:6080/mmdetection/mmdet_model_train?"
+        # datas = []
+        # message_dict = json.loads(body)
+        # for k, v in message_dict.items():
+        #     if k == 'missionType':
+        #         continue
+        #     else:
+        #         if type(v) == str:
+        #             v_new = v.replace('/', '%2F')
+        #             datas.append(f'{k}={v_new}')
+        # para = '&'.join(datas)
+        # # print(para)
+        # params = m
+        # url += para
+        # print(url)
+        # res = requests.get(url=url, params=params)
+        # print('获取进度')
+        # # print(res.text)
+        # # server_pid = res.json()['process_id']
+        # # print(server_pid)
+        #
+        # 获取进度
+        # 需要判断任务启动成功
 
-    #     # datas = []
-    #     # message_dict = json.loads(body)
-    #     # for k, v in message_dict.items():
-    #     #     if k == 'missionType':
-    #     #         continue
-    #     #     else:
-    #     #         if type(v) == str:
-    #     #             v_new = v.replace('/', '%2F')
-    #     #             datas.append(f'{k}={v_new}')
-    #     # para = '&'.join(datas)
-    #     # # print(para)
-    #     # params = m
-    #     # url += para
-    #     # print(url)
-    #     # res = requests.get(url=url, params=params)
-    #     # print('获取进度')
-    #     # # print(res.text)
-    #     # # server_pid = res.json()['process_id']
-    #     # # print(server_pid)
-    #     #
-    #     # 获取进度
-    #     # 需要判断任务启动成功
+        # time.sleep(20)
+        # while True:
+        #     res = requests.get(url='http://139.196.192.142/progress/get_progress')
+        #     # if res.status_code == 200:
+        #     #     break
+        #     print(res)
+        #     # server_pid = res.json()[3]
+        #     # if res.json()[1]==None:
+        #     mission_progress = res.json()[0]
+        #     total_epoch = max(res.json()[1], res.json()[2])
+        #     epoch = min(res.json()[1], res.json()[2])
+        #
+        #     # 回报进度
+        #     report_progress(platformContext, epoch, total_epoch, mission_progress)
+        #     time.sleep(5)
+        #     if mission_progress == 1:
+        #         break
+    if missionType == 'AiInteractiveMarking':
+        # print(11111)
 
-    #     # time.sleep(20)
-    #     # while True:
-    #     #     res = requests.get(url='http://139.196.192.142/progress/get_progress')
-    #     #     # if res.status_code == 200:
-    #     #     #     break
-    #     #     print(res)
-    #     #     # server_pid = res.json()[3]
-    #     #     # if res.json()[1]==None:
-    #     #     mission_progress = res.json()[0]
-    #     #     total_epoch = max(res.json()[1], res.json()[2])
-    #     #     epoch = min(res.json()[1], res.json()[2])
-    #     #
-    #     #     # 回报进度
-    #     #     report_progress(platformContext, epoch, total_epoch, mission_progress)
-    #     #     time.sleep(5)
-    #     #     if mission_progress == 1:
-    #     #         break
-    # if missionType == 'AiInteractiveMarking':
-    #     # print(11111)
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        # time.sleep(20)
+        # conname = runshell.start_container()
+        conname1 = requests.get(url='http://139.196.192.142:8011/startcontainer')
+        print(22)
+        global conname
+        conname = conname1.json()
+        # print(type(conname))
+        # print(conname)
+        # print(conname1)
+        # 需要判断 容器能否创建成功
+        # time.sleep(20)
+        conport = conname[-5:]
+        conn = sqlite3.connect('mission.db')
+        c = conn.cursor()
+        # init
 
-    #     channel.basic_ack(delivery_tag=method.delivery_tag)
-    #     # time.sleep(20)
-    #     # conname = runshell.start_container()
-    #     conname1 = requests.get(url='http://139.196.192.142:8011/startcontainer')
-    #     print(22)
-    #     global conname
-    #     conname = conname1.json()
-    #     # print(type(conname))
-    #     # print(conname)
-    #     # print(conname1)
-    #     # 需要判断 容器能否创建成功
-    #     # time.sleep(20)
-    #     conport = conname[-5:]
-    #     conn = sqlite3.connect('mission.db')
-    #     c = conn.cursor()
-    #     # init
+        # add
+        c.execute(
+            "insert into marking_list(ID,TASKID,MISSIONTYPE,PLATFORMCONTEXT,SERVERCONTEXT,CONTAINERNAME) values (NULL,?,?,?,?,?)",
+            (taskid, missionType, platformContext, taskid, conname))
+        c.close()
+        conn.commit()
+        print("sql done")
+        Mission_Judgment.mission_judgment(platformContext=platformContext, host_ip='139.196.192.142', port=conport,
+                                          serverContext=taskid)
+        print(conname)
 
-    #     # add
-    #     c.execute(
-    #         "insert into marking_list(ID,TASKID,MISSIONTYPE,PLATFORMCONTEXT,SERVERCONTEXT,CONTAINERNAME) values (NULL,?,?,?,?,?)",
-    #         (taskid, missionType, platformContext, taskid, conname))
-    #     c.close()
-    #     conn.commit()
-    #     print("sql done")
-    #     Mission_Judgment.mission_judgment(platformContext=platformContext, host_ip='139.196.192.142', port=conport,
-    #                                       serverContext=taskid)
-    #     print(conname)
+        time.sleep(20)
+        # while True:
+        #     res = requests.get(url='http://139.196.192.142/get_interaction_service')
+        #     if res is not None:
+        #         print(res)
+        #         break
+    if missionType == 'AiImageMatting':
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+    if missionType == 'StopMission':
+        print("Stop")
+        # 上下文判断任务类型
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        print(aiTaskType)
+        if aiTaskType == 'AiModelTraining':
+            conn = sqlite3.connect('mission.db')
+            c = conn.cursor()
+            c.execute("SELECT PID FROM training_list WHERE TASKID=?", (m['serverContext'],))
+            # print(c.fetchone())
+            # print(type(c.fetchone()))
+            # print(type(c.fetchall()))
+            pid_temp = str(c.fetchone())
+            print(pid_temp)
+            pid = pid_temp[1:-2]
+            print(pid)
+            kill_pid(pid)
+            c.execute("UPDATE training_list SET PROGRESS =? WHERE TASKID=?", (0, m['serverContext'],))
+            conn.commit()
 
-    #     time.sleep(20)
-    #     # while True:
-    #     #     res = requests.get(url='http://139.196.192.142/get_interaction_service')
-    #     #     if res is not None:
-    #     #         print(res)
-    #     #         break
-    # if missionType == 'AiImageMatting':
-    #     channel.basic_ack(delivery_tag=method.delivery_tag)
-    # if missionType == 'StopMission':
-    #     print("Stop")
-    #     # 上下文判断任务类型
-    #     channel.basic_ack(delivery_tag=method.delivery_tag)
-    #     print(aiTaskType)
-    #     if aiTaskType == 'AiModelTraining':
-    #         conn = sqlite3.connect('mission.db')
-    #         c = conn.cursor()
-    #         c.execute("SELECT PID FROM training_list WHERE TASKID=?", (m['serverContext'],))
-    #         # print(c.fetchone())
-    #         # print(type(c.fetchone()))
-    #         # print(type(c.fetchall()))
-    #         pid_temp = str(c.fetchone())
-    #         print(pid_temp)
-    #         pid = pid_temp[1:-2]
-    #         print(pid)
-    #         kill_pid(pid)
-    #         c.execute("UPDATE training_list SET PROGRESS =? WHERE TASKID=?", (0, m['serverContext'],))
-    #         conn.commit()
-
-    #     if aiTaskType == 'AiInteractiveMarking':
-    #         conn = sqlite3.connect('mission.db')
-    #         c = conn.cursor()
-    #         c.execute("SELECT CONTAINERNAME FROM marking_list WHERE TASKID=?", (m['serverContext'],))
-    #         stop_conname = str(c.fetchone())[1:-3]
-    #         print(stop_conname)
-    #         # stopconport = m["port"]
-    #         requests.post(url='http://139.196.192.142:8011/stopcontainer',
-    #                       headers={"Content-Type": "application/json"},
-    #                       data=json.dumps({"container_name": stop_conname}))
-    #         c.execute("UPDATE marking_list SET CONTAINERNAME ='stopped' WHERE TASKID=?", (m['serverContext'],))
-    #         conn.commit()
-    #         print(m['serverContext'])
-    #         print('stopped')
+        if aiTaskType == 'AiInteractiveMarking':
+            conn = sqlite3.connect('mission.db')
+            c = conn.cursor()
+            c.execute("SELECT CONTAINERNAME FROM marking_list WHERE TASKID=?", (m['serverContext'],))
+            stop_conname = str(c.fetchone())[1:-3]
+            print(stop_conname)
+            # stopconport = m["port"]
+            requests.post(url='http://139.196.192.142:8011/stopcontainer',
+                          headers={"Content-Type": "application/json"},
+                          data=json.dumps({"container_name": stop_conname}))
+            c.execute("UPDATE marking_list SET CONTAINERNAME ='stopped' WHERE TASKID=?", (m['serverContext'],))
+            conn.commit()
+            print(m['serverContext'])
+            print('stopped')
 
 
 def ErrorConsumer(channel, method, properites, body):
