@@ -1,0 +1,3 @@
+HEART_BEAT_DICT = {}
+
+MISSION_TEXT = {}
