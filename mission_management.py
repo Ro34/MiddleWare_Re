@@ -1,9 +1,10 @@
 import urls
 import requests
 import database_management
+import middle_args
 # 任务管理
 class MissionReply:
-
+    pass
 
 
 
@@ -28,8 +29,6 @@ class MissionStart:
     def mission_distribute(self,host_ip,port,platformContext,serverContext):
 
         data = {
-            # 'host' :'192.168.9.99'  ,  # 服务器的 IP 或域名
-            # 'port' :60082  ,  # 接受任务的服务端口
             'host': host_ip,
             'port': port,
             'platformContext': platformContext,  # 平台上下文字段，来自于任务队列中消息携带的 context
@@ -61,23 +60,42 @@ class MissionStart:
 
 class MissionMaintain:
 
+    def __init__(self):
+        self.hbdict = middle_args.HEART_BEAT_DICT
+
     def parse_heartbeat(self):
-        pass
+        return self.hbdict
 
     def update_progress(self):
-        pass
+        task = database_management.MissionInfo()
+        task.query_database('SERVERCONTEXT', self.hbdict['serverContext'])
+        
+        data = {
+            "progressText": "训练轮数(" + str(epoch) + "/" + str(total_epoch) + ")",
+            "progress": dict['progress']*100,
+            "platformContext": task.dict['PLATFORMCONTEXT']
+        }
+
+        res = requests.post(url=urls.url_to_platform_progress,headers=urls.headers,data=data)
 
     def update_database(self):
-        pass
+        task = database_management.MissionInfo()
+        task.update_database('MISSIONSTATUS', self.hbdict['mission_status'], 'SERVERCONTEXT', self.hbdict['serverContext'])
+        #多次更新或者函数中更新所有值
 
 
 class MissionStop:
 
-    def get_mission_info(self):
-        pass
+    def get_mission_info(self,server_context):
+        tasker = database_management.MissionInfo()
+        tasker.query_database(SERVERCONTEXT, server_context)
+        return tasker.dict
+        
 
-    def mission_stop_AI_training(self):
-        pass
+    def mission_stop_AI_training(self,task_dict):
+        kill_pid = task_dict['PID']
+        #调接口
 
-    def mission_stop_AI_marking(self):
-        pass
+    def mission_stop_AI_marking(self,task_dict):
+        container_name = task_dict['CONTAINERNAME']
+        #调接口

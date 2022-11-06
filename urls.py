@@ -24,6 +24,10 @@ TO_PLATFORM_ACCEPT_MISSION_DATA = {
     'serverContext': {}
 }
 
+# 回报进度
+TO_PLATFORM_PROGRESS_SERVICE = '/AiServer/ReportProgress'
+
+
 # urls
 url_to_platform_heartbeat = '{}:{}{}'.format(PLATFORM_IP, PLATFORM_PORT,
                                              TO_PLATFORM_HEARTBEAT_SERVICE)
@@ -32,3 +36,6 @@ data_to_platform_heartbeat = TO_PLATFORM_HEARTBEAT_DATA
 url_to_platform_accept_mission = '{}:{}{}'.format(PLATFORM_IP, PLATFORM_PORT,
                                                   TO_PLATFORM_ACCEPT_MISSION_SERVICE)
 data_to_platform_accept_mission = TO_PLATFORM_ACCEPT_MISSION_DATA, (host_ip)
+
+url_to_platform_progress = '{}:{}{}'.format(PLATFORM_IP, PLATFORM_PORT,
+                                             TO_PLATFORM_PROGRESS_SERVICE)

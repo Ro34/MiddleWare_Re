@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
+import middle_args
 
 
 class train_mission_paras(BaseModel):
@@ -29,6 +30,7 @@ class mission_info_para(BaseModel):
     mission_status: str
     server_status: str
     status_code: int
+    send_time:str
     training_epoch: int = None
     training_total_epoch: int = None
     training_pid: int = None
@@ -46,6 +48,8 @@ async def get_mission_info(item: mission_info_para):
     print("------------------------------------------")
 
     print(item)
+
+    middle_args.HEART_BEAT_DICT = item
 
     return {"new ok ==== " + '\n' + str(item)}
 
@@ -147,13 +151,13 @@ async def marking_service_ok(item: interaction_para):
     return {"ok"}
 
 
-@app1.post("/mission_info")
-async def get_mission_info(item: mission_info_para):
-    print("------------------------------------------")
+# @app1.post("/mission_info")
+# async def get_mission_info(item: mission_info_para):
+#     print("------------------------------------------")
 
-    print(item)
+#     print(item)
 
-    return {"new ok ==== " + str(item)}
+#     return {"new ok ==== " + str(item)}
 
 
 @app1.get("/get_marking_service")
