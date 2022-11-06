@@ -8,6 +8,7 @@ import json
 import time
 import logging
 import logging.config
+import mission_management
 
 from judge.aliyun_env import *
 
@@ -95,11 +96,31 @@ def TaskEnded(method):
                             time.sleep(5)
 
 
+def mian_process(m):
+    mission = mission_management.MissionStart(m)
+    #应该是我去请求服务器接口判断资源情况
+    status = mission.resources_query()
+    if status == -1:
+        #结束线程
+        exit()
+
+    if mission.mission_type == 'AiModelTraining':
+        mission.mission_reply()
+
+
+
 def Consumer(channel, method, properites, body):
     # channel.basic_ack(delivery_tag=method.delivery_tag)
 
     global m, pid
     m = eval(body)
+    mission = mission_management.MissionStart(m)
+
+
+
+
+
+
     missionType = m['missionType']
     platformContext = m['platformContext']
     # serverContext = m['serverContext']

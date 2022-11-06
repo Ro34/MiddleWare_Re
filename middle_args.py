@@ -1,3 +1,5 @@
 HEART_BEAT_DICT = {}
 
 MISSION_TEXT = {}
+
+RESOURCES_DICT = {}

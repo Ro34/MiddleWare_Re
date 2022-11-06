@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 
+import middle_args
+
 
 class train_mission_paras(BaseModel):
     server_pid: int
@@ -38,16 +40,28 @@ class mission_info_para(BaseModel):
     dataset_done: int = None
 
 
+class resources_ok_para(BaseModel):
+    resources_situation: str
+    status_code: int
+
+
 app1 = FastAPI()
 
 
 @app1.post("/mission_info")
 async def get_mission_info(item: mission_info_para):
     print("------------------------------------------")
-
+    middle_args.HEART_BEAT_DICT = item
     print(item)
 
-    return {"new ok ==== " + '\n' + str(item)}
+    return {"new ok ==== " + str(item)}
+
+@app1.post('/resources_info')
+async def get_resources_info(item:resources_ok_para):
+    print("------------------------------------------")
+    middle_args.RESOURCES_DICT = item
+    print(item)
+    return {"resources_info_get"+str(item)}
 
 
 # 其他
@@ -102,13 +116,13 @@ async def get_progress():
 # print(progress_params)
 
 # 停止模型训练任务
-@app1.post("/mission/send_kill_mission")
-async def get_kill_pid(item: train_mission_paras):
-    global killing_pid
-    killing_pid = item.server_pid
-    # 杀死进程
-    stopMission.kill_pid(killing_pid)
-    return {"Prepare to stop mission"}
+# @app1.post("/mission/send_kill_mission")
+# async def get_kill_pid(item: train_mission_paras):
+#     global killing_pid
+#     killing_pid = item.server_pid
+#     # 杀死进程
+#     stopMission.kill_pid(killing_pid)
+#     return {"Prepare to stop mission"}
 
 
 # 获取kill_pid
@@ -119,13 +133,13 @@ async def root():
     return killing_pid
 
 
-@app1.post("/marking_mission/stop_mission")
-async def stop_marking_mission(item: marking_mission_paras):
-    global killing_conname
-    killing_conname = item.container_name
-    runshell.stop_container(killing_conname)
-    # stopMission.kill_pid(killing_pid)
-    return {"marking_mission_stopped"}
+# @app1.post("/marking_mission/stop_mission")
+# async def stop_marking_mission(item: marking_mission_paras):
+#     global killing_conname
+#     killing_conname = item.container_name
+#     runshell.stop_container(killing_conname)
+#     # stopMission.kill_pid(killing_pid)
+#     return {"marking_mission_stopped"}
 
 
 # @app.get('/marking_mission/get_stop_mission')

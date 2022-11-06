@@ -24,10 +24,12 @@ class MissionStart:
 
     resources_status = 0
 
-    def resources_query(self, resources_status):
-        MissionStart.resources_status = 0
+    def resources_query(self):
+        #请求服务器接口,获得一个return,传给resources_status
+        resources_status = 0
+        return resources_status
 
-    def mission_distribute(self, host_ip, port, platformContext, serverContext):
+    def mission_reply(self, host_ip, port, platformContext, serverContext):
         data = {
             # 'host' :'192.168.9.99'  ,  # 服务器的 IP 或域名
             # 'port' :60082  ,  # 接受任务的服务端口
@@ -37,6 +39,7 @@ class MissionStart:
             'serverContext': serverContext,  # 服务器上下文字段，之后来自平台的消息都会原封不动携带该字段
         }
         # 如何在urls中管理带参数的字典？？？
+        #响应平台
         res = requests.post(url=urls.url_to_platform_accept_mission, headers=urls.headers, data=json.dumps(data))
 
         self.server_context = serverContext
@@ -70,7 +73,7 @@ class MissionMaintain:
         task.query_database('SERVERCONTEXT', self.hbdict['serverContext'])
 
         data = {
-            "progressText": "训练轮数(" + str(epoch) + "/" + str(total_epoch) + ")",
+            "progressText": "训练轮数(" + str(self.hbdict['epoch']) + "/" + str(self.hbdict['total_epoch']) + ")",
             "progress": task.dict['progress'] * 100,
             "platformContext": task.dict['PLATFORMCONTEXT']
         }
@@ -115,3 +118,5 @@ class MissionStop:
                       headers=urls.headers,
                       data=json.dumps(data))
         print(res)
+
+

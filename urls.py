@@ -14,7 +14,7 @@ TO_PLATFORM_HEARTBEAT_DATA = {
     'ftpPassword': '123',
     'version': '1.3'
 }
-# 接受任务
+# 接受任务f
 TO_PLATFORM_ACCEPT_MISSION_SERVICE = '/AiServer/AcceptMission'
 
 TO_PLATFORM_ACCEPT_MISSION_DATA = {
