@@ -8,6 +8,8 @@ import json
 import time
 import logging
 import logging.config
+
+import database_management
 import mission_management
 
 from judge.aliyun_env import *
@@ -96,33 +98,51 @@ def TaskEnded(method):
                             time.sleep(5)
 
 
-def mian_process(m):
-    mission = mission_management.MissionStart(m)
-    #应该是我去请求服务器接口判断资源情况
-    status = mission.resources_query()
-    if status == -1:
-        #结束线程
-        exit()
+def main_process(m, channel, method):
+    m_start = mission_management.MissionStart(m)
+    m_stop = mission_management.MissionStop(m)
+    # 应该是我去请求服务器接口判断资源情况
 
-    if mission.mission_type == 'AiModelTraining':
-        mission.mission_reply()
+    if m_start.mission_type == 'AiModelTraining':
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        m_start.resources_query()
+        m_start.mission_reply('172.18.60.77', 60090, m_start.platform_context, m_start.taskid)
+        m_start.mission_start_AI_training()
+        m_start.creating_mission_item()
+
+    if m_start.mission_type == 'AiInteractiveMarking':
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+        m_start.resources_query()
+        m_start.mission_reply('139.196.192.142', 8011, m_start.platform_context, m_start.taskid)
+        m_start.mission_start_AI_marking()
+        m_start.creating_mission_item()
+
+    if m_start.mission_type == 'StopMission':
+        channel.basic_ack(delivery_tag=method.delivery_tag)
+
+        if m_start.aiTaskType == 'AiModelTraining':
+            m_stop.mission_stop_AI_training()
+
+        if m_start.aiTaskType == 'AiInteractiveMarking':
+            m_stop.mission_stop_AI_marking()
+
+
+
 
 
 
 def Consumer(channel, method, properites, body):
-    # channel.basic_ack(delivery_tag=method.delivery_tag)
 
-    global m, pid
-    m = eval(body)
-    mission = mission_management.MissionStart(m)
+    message = eval(body)
+    main_process(message, channel, method)
 
 
 
 
+    # mission = mission_management.MissionStart(m)
 
-
-    missionType = m['missionType']
-    platformContext = m['platformContext']
+    missionType = message['missionType']
+    platformContext = message['platformContext']
     # serverContext = m['serverContext']
     # indexstr1 = '"TaskId":'
     # indexstr2 = ',"AiTask'
@@ -133,9 +153,9 @@ def Consumer(channel, method, properites, body):
     # print(serverContext)
     print(platformContext)
     print('任务参数')
-    print(m)
+    print(message)
     print('任务类型')
-    print(m['missionType'])
+    print(message['missionType'])
 
     # 写入数据库
 
@@ -245,7 +265,7 @@ def Consumer(channel, method, properites, body):
         if aiTaskType == 'AiModelTraining':
             conn = sqlite3.connect('mission.db')
             c = conn.cursor()
-            c.execute("SELECT PID FROM training_list WHERE TASKID=?", (m['serverContext'],))
+            c.execute("SELECT PID FROM training_list WHERE TASKID=?", (message['serverContext'],))
             # print(c.fetchone())
             # print(type(c.fetchone()))
             # print(type(c.fetchall()))
@@ -254,22 +274,22 @@ def Consumer(channel, method, properites, body):
             pid = pid_temp[1:-2]
             print(pid)
             kill_pid(pid)
-            c.execute("UPDATE training_list SET PROGRESS =? WHERE TASKID=?", (0, m['serverContext'],))
+            c.execute("UPDATE training_list SET PROGRESS =? WHERE TASKID=?", (0, message['serverContext'],))
             conn.commit()
 
         if aiTaskType == 'AiInteractiveMarking':
             conn = sqlite3.connect('mission.db')
             c = conn.cursor()
-            c.execute("SELECT CONTAINERNAME FROM marking_list WHERE TASKID=?", (m['serverContext'],))
+            c.execute("SELECT CONTAINERNAME FROM marking_list WHERE TASKID=?", (message['serverContext'],))
             stop_conname = str(c.fetchone())[1:-3]
             print(stop_conname)
             # stopconport = m["port"]
             requests.post(url='http://139.196.192.142:8011/stopcontainer',
                           headers={"Content-Type": "application/json"},
                           data=json.dumps({"container_name": stop_conname}))
-            c.execute("UPDATE marking_list SET CONTAINERNAME ='stopped' WHERE TASKID=?", (m['serverContext'],))
+            c.execute("UPDATE marking_list SET CONTAINERNAME ='stopped' WHERE TASKID=?", (message['serverContext'],))
             conn.commit()
-            print(m['serverContext'])
+            print(message['serverContext'])
             print('stopped')
 
 

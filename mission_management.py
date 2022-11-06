@@ -25,8 +25,13 @@ class MissionStart:
     resources_status = 0
 
     def resources_query(self):
-        #请求服务器接口,获得一个return,传给resources_status
+        # 请求服务器接口,获得一个return,传给resources_status
         resources_status = 0
+
+        if resources_status == -1:
+            # 结束线程
+            exit()
+
         return resources_status
 
     def mission_reply(self, host_ip, port, platformContext, serverContext):
@@ -39,7 +44,7 @@ class MissionStart:
             'serverContext': serverContext,  # 服务器上下文字段，之后来自平台的消息都会原封不动携带该字段
         }
         # 如何在urls中管理带参数的字典？？？
-        #响应平台
+        # 响应平台
         res = requests.post(url=urls.url_to_platform_accept_mission, headers=urls.headers, data=json.dumps(data))
 
         self.server_context = serverContext
@@ -95,28 +100,30 @@ class MissionStop:
         self.aiTaskType = self.platform_context.split(",")[1].split(":")[-1][1:-2]
         self.server_context = m['serverContext']
 
-    def get_mission_info(self):
+    # def get_mission_info(self):
+    #     task = database_management.MissionInfo()
+    #     task.query_database('SERVERCONTEXT', self.server_context)
+    #     return task.dict
+
+    def mission_stop_AI_training(self, ):
         task = database_management.MissionInfo()
         task.query_database('SERVERCONTEXT', self.server_context)
-        return task.dict
-
-    def mission_stop_AI_training(self, task_dict):
-        kill_pid = task_dict['PID']
+        kill_pid = task.dict['PID']
         data = {
             'server_pid': kill_pid
         }
-        res = requests.post(url=urls.url_to_server_training_stop,headers=urls.headers,data=json.dumps(data))
+        res = requests.post(url=urls.url_to_server_training_stop, headers=urls.headers, data=json.dumps(data))
         print(res)
 
-    def mission_stop_AI_marking(self, task_dict):
-        stop_conname = task_dict['CONTAINERNAME']
+    def mission_stop_AI_marking(self, ):
+        task = database_management.MissionInfo()
+        task.query_database('SERVERCONTEXT', self.server_context)
+        stop_conname = task.dict['CONTAINERNAME']
         data = {
             "container_name": stop_conname
         }
 
         res = requests.post(url=urls.url_to_server_marking_stop,
-                      headers=urls.headers,
-                      data=json.dumps(data))
+                            headers=urls.headers,
+                            data=json.dumps(data))
         print(res)
-
-
