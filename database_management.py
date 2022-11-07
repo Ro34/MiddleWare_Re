@@ -45,13 +45,21 @@ class DatabaseBase:
             return d
 
         c = conn.cursor()
+        print(str("'" + query_condition_value + "'"))
+        print(self.table_name)
+        # print(query_condition_key)
         c.execute(
-            "SELECT * FROM " + self.table_name + " WHERE " + query_condition_key + " = ?", query_condition_value
-        )
-        # print(c.fetchall())
+            "SELECT * FROM " + str(self.table_name) + " WHERE SERVERCONTEXT = ?", (str(query_condition_value),))
+        # print(str(c.fetchall()[0]))
+        # if c.fetchone() is None:
+        #     print("no this item")
+        print(str('"'+query_condition_value+'"'))
+        print("什么情况")
         result_dict = dict_factory(c, c.fetchone())
+
         c.close()
         # print(result_dict)
+
         self.dict = result_dict
         # return result_dict
 
@@ -135,16 +143,14 @@ class ServerInfo(DatabaseBase):
 
 class MissionInfo(DatabaseBase):
 
-
     def __init__(self):
         super().__init__('MissionInfoTable')
         # c = super().init_database()
         conn = self.conn
         c = conn.cursor()
-        print(c)
         c.execute(
             "create table if not exists " + self.table_name + " (ID INTEGER PRIMARY KEY, TASKID INT,MISSIONTYPE VARCHAR(50),MISSIONSTATUS VARCHAR(50),IP VARCHAR(50),PORT VARCHAR(50),SERVERSTATUS VARCHAR(50),PLATFORMCONTEXT VARCHAR(255),SERVERCONTEXT VARCHAR(50),PID INT,PROGRESS FLOAT,CONTAINERNAME VARCHAR(50))")
-        print(333)
+        print('创建表完成')
         conn.commit()
         c.close()
 
@@ -168,8 +174,10 @@ class MissionInfo(DatabaseBase):
 
         super().update_database(update_key, update_value, update_condition_key, update_condition_value)
 
-    def query_database(self,  query_condition_key, query_condition_value):
+    def query_database(self, query_condition_key, query_condition_value):
+
         super().__init__('MissionInfoTable')
+
         super().query_database(query_condition_key, query_condition_value)
 
 

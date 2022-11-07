@@ -58,11 +58,12 @@ class MissionStart:
 
     def mission_start_AI_marking(self):
         conname1 = requests.get(url='http://139.196.192.142:8011/startcontainer')
+        print("coname"+conname1.json())
         return conname1.json()
 
     def creating_mission_item(self):
         tasker = database_management.MissionInfo()
-        tasker.insert_database(self.taskid, self.mission_type, 'accept', MissionStart.host_ip, MissionStart.port, '',
+        tasker.insert_database(self.taskid, self.mission_type, 'accept', MissionStart.host_ip, MissionStart.port, 'running',
                                self.platform_context, self.server_context, 0, 0, '')
 
 
@@ -114,11 +115,20 @@ class MissionStop:
         }
         res = requests.post(url=urls.url_to_server_training_stop, headers=urls.headers, data=json.dumps(data))
         print(res)
+        task.update_database('MISSIONSTATUS', 'STOPPED', 'SERVERCONTEXT', self.server_context)
 
     def mission_stop_AI_marking(self, ):
         task = database_management.MissionInfo()
+        print(self.server_context)
+        print("aaa")
         task.query_database('SERVERCONTEXT', self.server_context)
+        print("chaxunjieshu")
+        print(task.dict)
+        print('#################'+task.dict['CONTAINERNAME'])
         stop_conname = task.dict['CONTAINERNAME']
+        print(task.dict['CONTAINERNAME'])
+        print(stop_conname)
+        print('分隔符')
         data = {
             "container_name": stop_conname
         }
@@ -127,3 +137,4 @@ class MissionStop:
                             headers=urls.headers,
                             data=json.dumps(data))
         print(res)
+        task.update_database('MISSIONSTATUS', 'STOPPED', 'SERVERCONTEXT', self.server_context)

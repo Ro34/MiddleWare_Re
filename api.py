@@ -28,7 +28,7 @@ class progress_params(BaseModel):
 
 class mission_info_para(BaseModel):
     serverContext: str
-    mission_status: str
+    mission_status: list
     server_status: str
     status_code: int
     training_epoch: int = None
@@ -38,6 +38,7 @@ class mission_info_para(BaseModel):
     marking_container_name: str = None
     dataset_total: int = None
     dataset_done: int = None
+
 
 
 class resources_ok_para(BaseModel):
@@ -51,16 +52,18 @@ app1 = FastAPI()
 @app1.post("/mission_info")
 async def get_mission_info(item: mission_info_para):
     print("------------------------------------------")
-    middle_args.HEART_BEAT_DICT = item
+    middle_args.HEART_BEAT_DICT = item.dict()
     print(item)
+    print(type(middle_args.HEART_BEAT_DICT))
 
     return {"new ok ==== " + str(item)}
 
 @app1.post('/resources_info')
 async def get_resources_info(item:resources_ok_para):
     print("------------------------------------------")
-    middle_args.RESOURCES_DICT = item
-    print(item)
+    middle_args.RESOURCES_DICT = item.dict()
+    print(middle_args.RESOURCES_DICT)
+
     return {"resources_info_get"+str(item)}
 
 
