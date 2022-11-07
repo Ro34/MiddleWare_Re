@@ -17,14 +17,14 @@ def fun3():
 
 
 def run():
-    # p1 = mp.Process(target=fun1)
+    p1 = mp.Process(target=fun1)
 
-    # p2 = mp.Process(target=fun2)
+    p2 = mp.Process(target=fun2)
 
     p3 = mp.Process(target=fun3)
 
-    # p1.start()
-    # p2.start()
+    p1.start()
+    p2.start()
     p3.start()
 
 
